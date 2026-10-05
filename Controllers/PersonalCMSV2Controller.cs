@@ -16,7 +16,7 @@ namespace personalCMSV2_NET_API.Controllers
         }
 
 
-        [HttpGet]
+        [HttpGet("entries")]
         public async Task<IActionResult> GetModels()
         {
             var result = await _context.ContentModel.Select(c => new
