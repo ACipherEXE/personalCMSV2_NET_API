@@ -1,0 +1,35 @@
+@localURL = http://localhost:5150
+
+GET {{localURL}}/weatherforecast/
+Accept: application/json
+
+###
+
+GET {{localURL}}/api/books/
+Accept: application/json
+
+###
+GET {{localURL}}/api/books/5
+Accept: application/json
+
+
+###
+POST {{localURL}}/api/books
+Content-Type: application/json
+{
+  "title": "1984",
+  "author": "George Orwell",
+  "yearPublished": 1949
+}
+
+###
+PUT {{localURL}}/api/books/5
+Content-Type: application/json
+{
+  "title": "This is a test",
+  "author": "George Orwell",
+  "yearPublished": 1949
+}
+
+###
+DELETE {{localURL}}/api/books/5
