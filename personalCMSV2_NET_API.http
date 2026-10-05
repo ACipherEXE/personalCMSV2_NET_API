@@ -33,3 +33,7 @@ Content-Type: application/json
 
 ###
 DELETE {{localURL}}/api/books/5
+
+###
+GET {{localURL}}/api/PersonalCMSV2/
+Accept: application/json
