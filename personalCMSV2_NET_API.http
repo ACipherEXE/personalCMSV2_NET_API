@@ -37,3 +37,8 @@ DELETE {{localURL}}/api/books/5
 ###
 GET {{localURL}}/api/PersonalCMSV2/entries
 Accept: application/json
+
+
+###
+GET {{localURL}}/api/PersonalCMSV2/entries/localizationToken
+Accept: application/json
