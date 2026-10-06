@@ -35,10 +35,15 @@ Content-Type: application/json
 DELETE {{localURL}}/api/books/5
 
 ###
-GET {{localURL}}/api/PersonalCMSV2/entries
+GET {{localURL}}/api/PersonalCMSV2/models
 Accept: application/json
 
 
 ###
-GET {{localURL}}/api/PersonalCMSV2/entries/localizationToken
+GET {{localURL}}/api/PersonalCMSV2/model/localizationToken
 Accept: application/json
+
+###
+GET {{localURL}}/api/PersonalCMSV2/entries/
+Accept: application/json
+

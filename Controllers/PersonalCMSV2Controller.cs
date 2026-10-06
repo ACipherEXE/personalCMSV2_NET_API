@@ -15,8 +15,8 @@ namespace personalCMSV2_NET_API.Controllers
             _context = context;
         }
 
-
-        [HttpGet("entries")]
+        // Model
+        [HttpGet("models")]
         public async Task<IActionResult> GetModels()
         {
             var result = await _context.ContentModel.Select(c => new
@@ -26,6 +26,39 @@ namespace personalCMSV2_NET_API.Controllers
                 c.Fields,
                 c.CreatedAt,
                 c.LastUpdated
+            }).ToListAsync();
+
+            return Ok(result);
+        }
+        [HttpGet("model/{uuid}")]
+        public async Task<IActionResult> GetModel(string uuid)
+        {
+            var result = await _context.ContentModel.Select(c => new
+            {
+                c.Uuid,
+                c.EntryName,
+                c.Fields,
+                c.CreatedAt,
+                c.LastUpdated
+            }).ToListAsync();
+            var book = result.FirstOrDefault(b => b.Uuid == uuid);
+            if (book == null) return NotFound();
+            return Ok(book);
+        }
+
+        // Entries
+        [HttpGet("entries")]
+        public async Task<IActionResult> GetEntries()
+        {
+            var result = await _context.ContentEntry.Select(c => new
+            {
+                c.Id,
+                c.ModelUuid,
+                c.Fields,
+                c.CreatedAt,
+                c.UpdatedAt,
+                c.Name,
+                c.ModelName
             }).ToListAsync();
 
             return Ok(result);

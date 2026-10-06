@@ -8,5 +8,6 @@ namespace personalCMSV2_NET_API.Models
         {
         }
         public DbSet<ContentModel> ContentModel { get; set; }
+        public DbSet<ContentEntry> ContentEntry { get; set; }
     }
 }
