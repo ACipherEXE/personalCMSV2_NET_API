@@ -47,5 +47,7 @@ Accept: application/json
 GET {{localURL}}/api/PersonalCMSV2/entries/
 Accept: application/json
 
-
+###
+GET {{localURL}}/api/PersonalCMSV2/entries/13beba48-4da1-4f0a-85da-2416c8fbb94b
+Accept: application/json
 
