@@ -33,17 +33,19 @@ namespace personalCMSV2_NET_API.Controllers
         [HttpGet("model/{uuid}")]
         public async Task<IActionResult> GetModel(string uuid)
         {
-            var result = await _context.ContentModel.Select(c => new
+            var model = await _context.ContentModel
+            .Where(c => c.Uuid == uuid)
+            .Select(c => new
             {
                 c.Uuid,
                 c.EntryName,
                 c.Fields,
                 c.CreatedAt,
                 c.LastUpdated
-            }).ToListAsync();
-            var book = result.FirstOrDefault(b => b.Uuid == uuid);
-            if (book == null) return NotFound();
-            return Ok(book);
+            })
+            .FirstOrDefaultAsync();
+            if (model == null) return NotFound();
+            return Ok(model);
         }
 
         // Entries
@@ -62,6 +64,25 @@ namespace personalCMSV2_NET_API.Controllers
             }).ToListAsync();
 
             return Ok(result);
+        }
+        [HttpGet("entries/{Id}")]
+        public async Task<IActionResult> GetEntry(Guid Id)
+        {
+            var entry = await _context.ContentEntry
+            .Where(c => c.Id == Id)
+            .Select(c => new
+            {
+                c.Id,
+                c.ModelUuid,
+                c.Fields,
+                c.CreatedAt,
+                c.UpdatedAt,
+                c.Name,
+                c.ModelName
+            })
+            .FirstOrDefaultAsync();
+            if (entry == null) return NotFound();
+            return Ok(entry);
         }
     }
 }
