@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using personalCMSV2_NET_API.Models;
+using System.Text.Json;
 
 namespace personalCMSV2_NET_API.Controllers
 {
@@ -47,7 +48,30 @@ namespace personalCMSV2_NET_API.Controllers
             if (model == null) return NotFound();
             return Ok(model);
         }
+        [HttpPost("model")]
+        public async Task<IActionResult> CreateModel([FromBody] ContentModel model)
+        {
+            model.Uuid = "";
+            model.EntryName = "";
+            model.Fields = JsonDocument.Parse("""
+                
+                [
+                    {
+                        "id": "slug",
+                        "name": "Slug",
+                        "type": "Symbol",
+                        "omitted": false,
+                        "disabled": false,
+                        "required": true,
+                        "localized": false,
+                        "validations": [ { "unique": true } ]
+                    }
+                ]                
+                """).RootElement.Clone();
 
+            return Ok(model);
+
+        }
         // Entries
         [HttpGet("entries")]
         public async Task<IActionResult> GetEntries()
@@ -83,6 +107,32 @@ namespace personalCMSV2_NET_API.Controllers
             .FirstOrDefaultAsync();
             if (entry == null) return NotFound();
             return Ok(entry);
+        }
+        [HttpPost("entrie")]
+        public async Task<IActionResult> CreateEntry([FromBody] ContentEntry entry)
+        {
+            entry.Id = Guid.NewGuid();
+            entry.CreatedAt = DateTime.UtcNow;
+            entry.UpdatedAt = DateTime.UtcNow;
+            _context.ContentEntry.Add(entry);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetEntry), new { Id = entry.Id }, entry);
+
+        }
+        [HttpPut("entrie")]
+        public async Task<IActionResult> UpdateEntry([FromBody] ContentEntry entry)
+        {
+            var existingEntry = await _context.ContentEntry.FindAsync(entry.Id);
+            if (existingEntry == null) return NotFound();
+            existingEntry.ModelUuid = entry.ModelUuid;
+            existingEntry.Fields = entry.Fields;
+            existingEntry.UpdatedAt = DateTime.UtcNow;
+            existingEntry.Name = entry.Name;
+            existingEntry.ModelName = entry.ModelName;
+            _context.ContentEntry.Update(existingEntry);
+            await _context.SaveChangesAsync();
+            return NoContent();
+
         }
     }
 }
