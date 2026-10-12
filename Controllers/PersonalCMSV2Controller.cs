@@ -82,7 +82,7 @@ namespace personalCMSV2_NET_API.Controllers
             };
             _context.ContentModel.Add(entry);
             await _context.SaveChangesAsync();
-            return Ok(model);
+            return Ok(entry);
 
         }
         // Entries

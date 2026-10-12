@@ -56,5 +56,5 @@ POST {{localURL}}/api/PersonalCMSV2/model/
 Content-Type: application/json
 Accept: application/json
 {
-  "EntryName": "Mobius Onetw"
+  "EntryName": "Mobius Onetw0s"
 }
