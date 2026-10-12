@@ -1,12 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using personalCMSV2_NET_API.Models;
 
+AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("postgressConnection") ?? throw new InvalidOperationException("Connection string 'personalCMSV2_NET_APIContext' not found.")));
 builder.Services.AddControllers();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 

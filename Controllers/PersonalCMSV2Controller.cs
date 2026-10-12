@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using personalCMSV2_NET_API.Models;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -64,10 +65,22 @@ namespace personalCMSV2_NET_API.Controllers
             if (model == null) return NotFound();
             return Ok(model);
         }
+        public record CreateModelRequest([Required] string EntryName);
         [HttpPost("model")]
-        public async Task<IActionResult> CreateModel([FromBody] ContentModel model)
+        public async Task<IActionResult> CreateModel([FromBody] CreateModelRequest model)
         {
-            _context.ContentModel.Add(model);
+            if (model.EntryName == null) return Conflict($"EntryName is needed.");
+            var existing = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == ToCamelCase(model.EntryName));
+            if (existing != null) return Conflict($"EntryName '{model.EntryName}' already exists.");
+            var entry = new ContentModel
+            {
+                Uuid = ToCamelCase(model.EntryName),
+                EntryName = model.EntryName,
+                Fields = JsonDocument.Parse("[]").RootElement.Clone(),
+                CreatedAt = DateTime.UtcNow,
+                LastUpdated = DateTime.UtcNow
+            };
+            _context.ContentModel.Add(entry);
             await _context.SaveChangesAsync();
             return Ok(model);
 
