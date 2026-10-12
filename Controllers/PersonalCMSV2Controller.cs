@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using personalCMSV2_NET_API.Models;
+using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace personalCMSV2_NET_API.Controllers
 {
@@ -9,6 +11,20 @@ namespace personalCMSV2_NET_API.Controllers
     [ApiController]
     public class PersonalCMSV2Controller : ControllerBase
     {
+        public static string ToCamelCase(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+
+            var words = Regex.Split(input.Trim(), @"[\s_\-]+")
+                             .Where(w => w.Length > 0)
+                             .ToArray();
+
+            var ti = CultureInfo.InvariantCulture.TextInfo;
+
+            return words[0].ToLowerInvariant() +
+                   string.Concat(words.Skip(1).Select(w => ti.ToTitleCase(w.ToLowerInvariant())));
+        }
         private readonly AppDbContext _context;
 
         public PersonalCMSV2Controller(AppDbContext context)
@@ -51,24 +67,8 @@ namespace personalCMSV2_NET_API.Controllers
         [HttpPost("model")]
         public async Task<IActionResult> CreateModel([FromBody] ContentModel model)
         {
-            model.Uuid = "";
-            model.EntryName = "";
-            model.Fields = JsonDocument.Parse("""
-                
-                [
-                    {
-                        "id": "slug",
-                        "name": "Slug",
-                        "type": "Symbol",
-                        "omitted": false,
-                        "disabled": false,
-                        "required": true,
-                        "localized": false,
-                        "validations": [ { "unique": true } ]
-                    }
-                ]                
-                """).RootElement.Clone();
-
+            _context.ContentModel.Add(model);
+            await _context.SaveChangesAsync();
             return Ok(model);
 
         }

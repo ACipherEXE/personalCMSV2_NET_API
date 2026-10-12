@@ -51,3 +51,25 @@ Accept: application/json
 GET {{localURL}}/api/PersonalCMSV2/entries/13beba48-4da1-4f0a-85da-2416c8fbb94b
 Accept: application/json
 
+###
+POST {{localURL}}/api/PersonalCMSV2/model/
+Content-Type: application/json
+Accept: application/json
+{
+  "ModelUuid ": "test",
+  "entry_name": "Test Entry",
+  "last_updated": null,
+  "created_at": null,
+  "fields": [
+    {
+      "Uuid": "slug",
+      "EntryName": "Slug",
+      "type": "Symbol",
+      "localized": false,
+      "required": true,
+      "validations": [ { "unique": true } ],
+      "disabled": false,
+      "omitted": false
+    }
+  ]
+}
