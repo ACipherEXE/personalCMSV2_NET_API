@@ -96,11 +96,10 @@ namespace personalCMSV2_NET_API.Controllers
         public async Task<IActionResult> EditModel(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
             if (uuid == null) return Conflict($"EntryName is needed.");
-            var exist = await GetModel(uuid);
-            if (exist is OkObjectResult ok)
+            var existing = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
+            if (existing != null)
             {
-                var entry = ok.Value as ContentModel;
-                if(entry == null) return Conflict($"EntryName '{uuid}' does exist.");
+                var entry = existing;
                 JsonArray fieldList = JsonNode.Parse(entry.Fields.ToString())!.AsArray();
                 fieldList.Add(new JsonObject
                 {

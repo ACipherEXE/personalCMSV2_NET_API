@@ -51,7 +51,7 @@ Accept: application/json
   "EntryName": "Mobius Onetw0ss"
 }
 ### 
-POST {{localURL}}/api/PersonalCMSV2/model/add/localizationToken
+POST {{localURL}}/api/PersonalCMSV2/model/add/mobiusOnetw0ss
 Content-Type: application/json
 Accept: application/json
 {
