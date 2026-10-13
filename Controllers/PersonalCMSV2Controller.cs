@@ -4,6 +4,7 @@ using personalCMSV2_NET_API.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace personalCMSV2_NET_API.Controllers
@@ -77,7 +78,7 @@ namespace personalCMSV2_NET_API.Controllers
             {
                 Uuid = ToCamelCase(model.EntryName),
                 EntryName = model.EntryName,
-                Fields = JsonDocument.Parse("[]").RootElement.Clone(),
+                Fields = new JsonArray(),
                 CreatedAt = DateTime.UtcNow,
                 LastUpdated = DateTime.UtcNow
             };
@@ -86,7 +87,11 @@ namespace personalCMSV2_NET_API.Controllers
             return Ok(entry);
 
         }
-        public record AddToModelRequest([Required] string EntryName);
+        public record AddToModelRequest(
+            [Required] string FieldName, 
+            [Required] string FieldType, 
+            bool FieldLoclized = false
+            );
         [HttpPost("model/add/field/{uuid}")]
         public async Task<IActionResult> EditModel(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
@@ -96,11 +101,25 @@ namespace personalCMSV2_NET_API.Controllers
             {
                 var entry = ok.Value as ContentModel;
                 if(entry == null) return Conflict($"EntryName '{uuid}' does exist.");
-                var fields = entry.Fields.EnumerateArray().ToList();
-                // THERE HAS TO BE A BETTER WAY THIS OVERLOADS ARE DUMB AS HELL
-                fields.Add(JsonDocument.Parse($"{{\"name\": \"{FieldToAdd.EntryName}\", \"type\": \"string\"}}").RootElement.Clone());
-                
-                entry.Fields = JsonDocument.Parse($"[{string.Join(",", fields)}]").RootElement.Clone();
+                JsonArray fieldList = JsonNode.Parse(entry.Fields.ToString())!.AsArray();
+                fieldList.Add(new JsonObject
+                {
+                    ["id"]= ToCamelCase(FieldToAdd.FieldName),
+                    ["name"]= FieldToAdd.FieldName,
+                    ["type"]= FieldToAdd.FieldType,
+                    ["omitted"]= false,
+                    ["disabled"]= false,
+                    ["required"]= true,
+                    ["localized"]= false,
+                    ["validations"]= new JsonArray
+                    {
+                        new JsonObject
+                        {
+                        ["unique"] = true
+                        }
+                    }
+                });
+                entry.Fields = fieldList;
                 _context.ContentModel.Add(entry);
                 await _context.SaveChangesAsync();
                 return Ok(entry);

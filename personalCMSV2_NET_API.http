@@ -48,7 +48,15 @@ POST {{localURL}}/api/PersonalCMSV2/model/add
 Content-Type: application/json
 Accept: application/json
 {
-  "EntryName": "Mobius Onetw0s"
+  "EntryName": "Mobius Onetw0ss"
+}
+### 
+POST {{localURL}}/api/PersonalCMSV2/model/add/localizationToken
+Content-Type: application/json
+Accept: application/json
+{
+  "FieldName": "Text Box",
+  "FieldType": "Text"
 }
 
 ### Entries
