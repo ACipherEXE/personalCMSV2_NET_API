@@ -1,9 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using personalCMSV2_NET_API.Models;
 
+
+
 AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
 
+
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
+
 
 // Add services to the container.
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -19,6 +27,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "personalCMSV2 API v1");
+    });
 }
 
 app.UseHttpsRedirection();

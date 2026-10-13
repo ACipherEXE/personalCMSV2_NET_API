@@ -48,7 +48,7 @@ namespace personalCMSV2_NET_API.Controllers
 
             return Ok(result);
         }
-        [HttpGet("model/{uuid}")]
+        [HttpGet("model/find/{uuid}")]
         public async Task<IActionResult> GetModel(string uuid)
         {
             var model = await _context.ContentModel
@@ -66,7 +66,7 @@ namespace personalCMSV2_NET_API.Controllers
             return Ok(model);
         }
         public record CreateModelRequest([Required] string EntryName);
-        [HttpPost("model")]
+        [HttpPost("model/add")]
         public async Task<IActionResult> CreateModel([FromBody] CreateModelRequest model)
         {
             if (model.EntryName == null) return Conflict($"EntryName is needed.");
