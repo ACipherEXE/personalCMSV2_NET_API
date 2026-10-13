@@ -65,6 +65,7 @@ namespace personalCMSV2_NET_API.Controllers
             if (model == null) return NotFound();
             return Ok(model);
         }
+        
         public record CreateModelRequest([Required] string EntryName);
         [HttpPost("model/add")]
         public async Task<IActionResult> CreateModel([FromBody] CreateModelRequest model)
@@ -84,6 +85,27 @@ namespace personalCMSV2_NET_API.Controllers
             await _context.SaveChangesAsync();
             return Ok(entry);
 
+        }
+        public record AddToModelRequest([Required] string EntryName);
+        [HttpPost("model/add/field/{uuid}")]
+        public async Task<IActionResult> EditModel(string uuid, [FromBody] AddToModelRequest FieldToAdd)
+        {
+            if (uuid == null) return Conflict($"EntryName is needed.");
+            var exist = await GetModel(uuid);
+            if (exist is OkObjectResult ok)
+            {
+                var entry = ok.Value as ContentModel;
+                if(entry == null) return Conflict($"EntryName '{uuid}' does exist.");
+                var fields = entry.Fields.EnumerateArray().ToList();
+                // THERE HAS TO BE A BETTER WAY THIS OVERLOADS ARE DUMB AS HELL
+                fields.Add(JsonDocument.Parse($"{{\"name\": \"{FieldToAdd.EntryName}\", \"type\": \"string\"}}").RootElement.Clone());
+                
+                entry.Fields = JsonDocument.Parse($"[{string.Join(",", fields)}]").RootElement.Clone();
+                _context.ContentModel.Add(entry);
+                await _context.SaveChangesAsync();
+                return Ok(entry);
+            }
+             return Conflict($"EntryName '{uuid}' does exist.");
         }
         // Entries
         [HttpGet("entries")]
