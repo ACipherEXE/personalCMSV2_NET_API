@@ -40,7 +40,7 @@ Accept: application/json
 
 
 ###
-GET {{localURL}}/api/PersonalCMSV2/model/find/localizationToken
+GET {{localURL}}/api/PersonalCMSV2/model/find/mobiusOnetw0ss
 Accept: application/json
 
 ### 
@@ -51,11 +51,19 @@ Accept: application/json
   "EntryName": "Mobius Onetw0sss"
 }
 ### 
-POST {{localURL}}/api/PersonalCMSV2/model/add/field/mobiusOnetw0ss
+POST {{localURL}}/api/PersonalCMSV2/model/field/mobiusOnetw0ss
 Content-Type: application/json
 Accept: application/json
 {
-  "FieldName": "Text Box",
+  "FieldName": "Text Boxs",
+  "FieldType": "Text"
+}
+### 
+DELETE {{localURL}}/api/PersonalCMSV2/model/field/mobiusOnetw0ss
+Content-Type: application/json
+Accept: application/json
+{
+  "FieldName": "Text Boxs",
   "FieldType": "Text"
 }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using personalCMSV2_NET_API.Models;
 using System.ComponentModel.DataAnnotations;
@@ -26,6 +27,16 @@ namespace personalCMSV2_NET_API.Controllers
 
             return words[0].ToLowerInvariant() +
                    string.Concat(words.Skip(1).Select(w => ti.ToTitleCase(w.ToLowerInvariant())));
+        }
+
+        public static JsonNode? FindFieldExists(JsonArray fieldList, string fieldName)
+        {
+            return fieldList.FirstOrDefault(f =>
+                    string.Equals(
+                    f?["id"]?.GetValue<string>(),
+                    ToCamelCase(fieldName),
+                    StringComparison.OrdinalIgnoreCase)
+                    );
         }
         private readonly AppDbContext _context;
 
@@ -91,16 +102,17 @@ namespace personalCMSV2_NET_API.Controllers
             [Required] string FieldName, 
             [Required] string FieldType
             );
-        [HttpPost("model/add/field/{uuid}")]
-        public async Task<IActionResult> EditModel(string uuid, [FromBody] AddToModelRequest FieldToAdd)
+        [HttpPost("model/field/{uuid}")]
+        public async Task<IActionResult> AddModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
             if (uuid == null) return Conflict($"EntryName is needed.");
             var entry = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
             if (entry != null)
             {
                 JsonArray fieldList = JsonNode.Parse(entry.Fields.ToString())!.AsArray();
+                var exists = FindFieldExists(fieldList, FieldToAdd.FieldName);
                 // Check if the field already exists in the model
-                if (string.Equals(fieldList[0]?["id"]?.GetValue<string>(), ToCamelCase(FieldToAdd.FieldName), StringComparison.OrdinalIgnoreCase))
+                if (exists != null)
                     return Conflict($"A field with id '{FieldToAdd.FieldName}' already exists in this model.");
                 fieldList.Add(new JsonObject
                 {
@@ -120,6 +132,7 @@ namespace personalCMSV2_NET_API.Controllers
                     }
                 });
                 entry.Fields = fieldList;
+                entry.LastUpdated = DateTime.UtcNow;
                 // Make sure to mark the Fields property as modified
                 _context.ContentModel.Entry(entry).Property(e => e.Fields).IsModified = true;
                 // Then save the changes
@@ -127,6 +140,31 @@ namespace personalCMSV2_NET_API.Controllers
                 return Ok(entry);
             }
              return Conflict($"EntryName '{uuid}' does exist.");
+        }
+        [HttpDelete("model/field/{uuid}")]
+        public async Task<IActionResult> DeleteModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
+        {
+            if (uuid == null) return Conflict($"EntryName is needed.");
+            var entry = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
+            if (entry != null)
+            {
+                JsonArray fieldList = JsonNode.Parse(entry.Fields.ToString())!.AsArray();
+                var exists = FindFieldExists(fieldList, FieldToAdd.FieldName);
+                // Check if the field already exists in the model
+                if (exists != null)
+                { 
+                   fieldList.Remove(exists);
+                   entry.Fields = fieldList;
+                   entry.LastUpdated = DateTime.UtcNow;
+                   // Make sure to mark the Fields property as modified
+                   _context.ContentModel.Entry(entry).Property(e => e.Fields).IsModified = true;
+                   // Then save the changes
+                   await _context.SaveChangesAsync();
+                   return Ok(entry); 
+                }
+                
+            }
+            return Conflict($"FieldName '{FieldToAdd.FieldName}' was not found.");
         }
         // Entries
         [HttpGet("entries")]
