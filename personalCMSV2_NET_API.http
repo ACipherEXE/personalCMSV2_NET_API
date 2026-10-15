@@ -48,10 +48,10 @@ POST {{localURL}}/api/PersonalCMSV2/model/add
 Content-Type: application/json
 Accept: application/json
 {
-  "EntryName": "Mobius Onetw0ss"
+  "EntryName": "Mobius Onetw0sss"
 }
 ### 
-POST {{localURL}}/api/PersonalCMSV2/model/add/mobiusOnetw0ss
+POST {{localURL}}/api/PersonalCMSV2/model/add/field/mobiusOnetw0ss
 Content-Type: application/json
 Accept: application/json
 {

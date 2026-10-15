@@ -89,18 +89,19 @@ namespace personalCMSV2_NET_API.Controllers
         }
         public record AddToModelRequest(
             [Required] string FieldName, 
-            [Required] string FieldType, 
-            bool FieldLoclized = false
+            [Required] string FieldType
             );
         [HttpPost("model/add/field/{uuid}")]
         public async Task<IActionResult> EditModel(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
             if (uuid == null) return Conflict($"EntryName is needed.");
-            var existing = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
-            if (existing != null)
+            var entry = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
+            if (entry != null)
             {
-                var entry = existing;
                 JsonArray fieldList = JsonNode.Parse(entry.Fields.ToString())!.AsArray();
+                // Check if the field already exists in the model
+                if (string.Equals(fieldList[0]?["id"]?.GetValue<string>(), ToCamelCase(FieldToAdd.FieldName), StringComparison.OrdinalIgnoreCase))
+                    return Conflict($"A field with id '{FieldToAdd.FieldName}' already exists in this model.");
                 fieldList.Add(new JsonObject
                 {
                     ["id"]= ToCamelCase(FieldToAdd.FieldName),
@@ -119,7 +120,9 @@ namespace personalCMSV2_NET_API.Controllers
                     }
                 });
                 entry.Fields = fieldList;
-                _context.ContentModel.Add(entry);
+                // Make sure to mark the Fields property as modified
+                _context.ContentModel.Entry(entry).Property(e => e.Fields).IsModified = true;
+                // Then save the changes
                 await _context.SaveChangesAsync();
                 return Ok(entry);
             }

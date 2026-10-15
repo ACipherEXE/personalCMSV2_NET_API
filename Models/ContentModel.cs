@@ -15,7 +15,7 @@ namespace personalCMSV2_NET_API.Models
         [Column("entry_name")]
         public string EntryName { get; set; } = default!;
         [Column("fields", TypeName = "jsonb")]
-        public JsonArray Fields { get; set; }
+        public JsonArray Fields { get; set; } = default!;
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
         [Column("last_updated")]
