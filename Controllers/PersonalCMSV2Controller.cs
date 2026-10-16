@@ -14,6 +14,7 @@ namespace personalCMSV2_NET_API.Controllers
     [ApiController]
     public class PersonalCMSV2Controller : ControllerBase
     {
+        // Helper method to convert a string to camelCase
         public static string ToCamelCase(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
@@ -28,7 +29,7 @@ namespace personalCMSV2_NET_API.Controllers
             return words[0].ToLowerInvariant() +
                    string.Concat(words.Skip(1).Select(w => ti.ToTitleCase(w.ToLowerInvariant())));
         }
-
+        // Helper method to find a field in a JsonArray by its name
         public static JsonNode? FindFieldExists(JsonArray fieldList, string fieldName)
         {
             return fieldList.FirstOrDefault(f =>
@@ -45,7 +46,7 @@ namespace personalCMSV2_NET_API.Controllers
             _context = context;
         }
 
-        // Model
+        // Get all models
         [HttpGet("models")]
         public async Task<IActionResult> GetModels()
         {
@@ -60,6 +61,7 @@ namespace personalCMSV2_NET_API.Controllers
 
             return Ok(result);
         }
+        // Get a specific model by UUID
         [HttpGet("model/find/{uuid}")]
         public async Task<IActionResult> GetModel(string uuid)
         {
@@ -79,6 +81,7 @@ namespace personalCMSV2_NET_API.Controllers
         }
         
         public record CreateModelRequest([Required] string EntryName);
+        // Create a new model
         [HttpPost("model/add")]
         public async Task<IActionResult> CreateModel([FromBody] CreateModelRequest model)
         {
@@ -98,10 +101,12 @@ namespace personalCMSV2_NET_API.Controllers
             return Ok(entry);
 
         }
+
         public record AddToModelRequest(
             [Required] string FieldName, 
             [Required] string FieldType
             );
+        // Add a field to a model
         [HttpPost("model/field/{uuid}")]
         public async Task<IActionResult> AddModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
@@ -141,6 +146,7 @@ namespace personalCMSV2_NET_API.Controllers
             }
              return Conflict($"EntryName '{uuid}' does exist.");
         }
+        // Delete a field from a model
         [HttpDelete("model/field/{uuid}")]
         public async Task<IActionResult> DeleteModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
