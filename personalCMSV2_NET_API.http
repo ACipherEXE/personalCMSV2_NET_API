@@ -55,7 +55,7 @@ POST {{localURL}}/api/PersonalCMSV2/model/field/mobiusOnetw0ss
 Content-Type: application/json
 Accept: application/json
 {
-  "FieldName": "Text Boxs",
+  "FieldName": "Text Boxwwss",
   "FieldType": "Text"
 }
 ### 
@@ -63,7 +63,7 @@ DELETE {{localURL}}/api/PersonalCMSV2/model/field/mobiusOnetw0ss
 Content-Type: application/json
 Accept: application/json
 {
-  "FieldName": "Text Boxs",
+  "FieldName": "Text Boxwwss",
   "FieldType": "Text"
 }
 
