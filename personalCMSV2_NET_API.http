@@ -72,7 +72,7 @@ GET {{localURL}}/api/PersonalCMSV2/entries/
 Accept: application/json
 
 ### Looks up a specific entry in the PersonalCMSV2 database
-GET {{localURL}}/api/PersonalCMSV2/entry/13beba48-4da1-4f0a-85da-2416c8fbb94b
+GET {{localURL}}/api/PersonalCMSV2/entry/01a15570-b45c-75c9-b031-de80a046660e
 Accept: application/json
 
 ### Creates a new entry in the PersonalCMSV2 database
@@ -80,6 +80,6 @@ POST {{localURL}}/api/PersonalCMSV2/entry/add
 Content-Type: application/json
 Accept: application/json
 {
-  "ModelNameUuid": "mobiusOnetw0ss",
-  "EntryName": "Test Entryss"
+  "ModelNameUuid": "localizationToken",
+  "EntryName": "Test Entrysss"
 }

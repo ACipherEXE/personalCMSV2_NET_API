@@ -31,7 +31,10 @@ namespace personalCMSV2_NET_API.Models
         public string ModelName { get; set; } = default!;
 
     }
+
 }
+
+
 
 public class LocalizedValue
 {

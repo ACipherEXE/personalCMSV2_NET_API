@@ -255,7 +255,9 @@ namespace personalCMSV2_NET_API.Controllers
             var model = FindSpecificModel(userEntryInput.ModelNameUuid);
             // If the model does not exist, return a conflict response
             if (model == null) return Conflict($"Model with UUID '{userEntryInput.ModelNameUuid}' was not found.");
+            // Generate the field structure for the new entry based on the model's fields
             var fieldList = FieldStructureGenerator(model.Fields, userEntryInput.EntryName) ?? new ContentFieldsInterface();
+            // Create a new ContentEntry object with the provided information and the generated field structure
             var entry = new ContentEntry
             {
                 ModelUuid = model.Uuid,
@@ -265,7 +267,7 @@ namespace personalCMSV2_NET_API.Controllers
                 ModelName = model.EntryName,
                 Fields = fieldList
             };
-
+            // Add the new entry to the database context and save changes
             _context.ContentEntry.Add(entry);
             await _context.SaveChangesAsync();
             return Ok(entry);
