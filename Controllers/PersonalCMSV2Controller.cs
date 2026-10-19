@@ -143,7 +143,7 @@ namespace personalCMSV2_NET_API.Controllers
         [HttpPost("model/field/{uuid}")]
         public async Task<IActionResult> AddModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
-            if (uuid == null) return Conflict($"EntryName is needed.");
+            if (uuid == null) return Conflict($"uuid is needed.");
             var model = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
             if (model != null)
             {
@@ -178,7 +178,7 @@ namespace personalCMSV2_NET_API.Controllers
                 await _context.SaveChangesAsync();
                 return Ok(model);
             }
-             return Conflict($"EntryName '{uuid}' does exist.");
+             return Conflict($"EntryName '{uuid}' does not exist.");
         }
         // Delete a field from a model
         [HttpDelete("model/field/{uuid}")]
