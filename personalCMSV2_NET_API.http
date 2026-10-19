@@ -81,5 +81,5 @@ Content-Type: application/json
 Accept: application/json
 {
   "ModelNameUuid": "mobiusOnetw0ss",
-  "EntryName": "Test Entry"
+  "EntryName": "Test Entryss"
 }

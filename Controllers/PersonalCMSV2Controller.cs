@@ -73,17 +73,17 @@ namespace personalCMSV2_NET_API.Controllers
             .FirstOrDefault();
             return model;
         }
-        private static Dictionary<string, LocalizedValue>? FieldStructureGenerator(List<Field> modelFieldStructure, string contentName)
+        private static ContentFieldsInterface? FieldStructureGenerator(List<Field> modelFieldStructure, string contentName)
         {
             if (modelFieldStructure == null) return null;
 
-            var fields = new Dictionary<string, LocalizedValue>();
+            var fields = new ContentFieldsInterface();
 
             foreach (var field in modelFieldStructure)
             {
-                fields[field.Id] = new LocalizedValue
+                fields[field.Id] = new LocalizedField
                 {
-                    EnUS = field.Id == "key" ? ToCamelCase(contentName) : ""
+                    ["en-US"] = field.Id == "key" ? ToCamelCase(contentName) : ""
                 };
             }
 
@@ -254,31 +254,20 @@ namespace personalCMSV2_NET_API.Controllers
             var model = FindSpecificModel(userEntryInput.ModelNameUuid);
             // If the model does not exist, return a conflict response
             if (model == null) return Conflict($"Model with UUID '{userEntryInput.ModelNameUuid}' was not found.");
+            var fieldList = FieldStructureGenerator(model.Fields, userEntryInput.EntryName) ?? new ContentFieldsInterface();
+            var entry = new ContentEntry
+            {
+                ModelUuid = model.Uuid,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Name = userEntryInput.EntryName,
+                ModelName = model.EntryName,
+                Fields = fieldList
+            };
 
-            //var entry = new ContentEntry
-            //{
-            //    ModelUuid = userEntryInput.ModelNameUuid,
-            //    CreatedAt = DateTime.UtcNow,
-            //    UpdatedAt = DateTime.UtcNow,
-            //    Name = userEntryInput.EntryName,
-            //    ModelName = "",
-            //    Fields = FieldStructureGenerator(model.Fields, userEntryInput.EntryName)
-            //};
-
-            return Ok(model);
-
-            //var entry = new ContentEntry
-            //{
-            //    ModelUuid = userEntryInput.ModelNameUuid,
-            //    CreatedAt = DateTime.UtcNow,
-            //    UpdatedAt = DateTime.UtcNow,
-            //    Name = userEntryInput.EntryName,
-            //    ModelName = ""
-            //};
-            //_context.ContentEntry.Add(entry);
-            //await _context.SaveChangesAsync();
-            //return CreatedAtAction(nameof(GetEntry), new { Id = entry.Id }, entry);
-
+            _context.ContentEntry.Add(entry);
+            await _context.SaveChangesAsync();
+            return Ok(entry);
         }
         // Update an existing entry
         [HttpPut("entry/{Id}")]

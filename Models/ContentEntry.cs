@@ -14,8 +14,13 @@ namespace personalCMSV2_NET_API.Models
         public Guid Id { get; set; } = default!;
         [Column("model_uuid")]
         public string ModelUuid { get; set; } = default!;
-        [Column("fields")]
-        public JsonElement Fields { get; set; }
+        private ContentFieldsInterface _fields = new ContentFieldsInterface();
+        [Column("fields", TypeName = "jsonb")]
+        public ContentFieldsInterface Fields
+        {
+            get => _fields;
+            set => _fields = value ?? new ContentFieldsInterface();
+        }
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
         [Column("updated_at")]
@@ -38,4 +43,12 @@ public class FieldValidation
 {
     [JsonPropertyName("unique")]
     public bool? Unique { get; set; }
+}
+
+public class LocalizedField : Dictionary<string, object?>
+{
+}
+
+public class ContentFieldsInterface : Dictionary<string, LocalizedField>
+{
 }
