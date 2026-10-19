@@ -24,7 +24,10 @@ namespace personalCMSV2_NET_API.Controllers
             [Required] string FieldName,
             [Required] string FieldType
         );
-        
+        public record EditEntryFields(
+           [Required] ContentFieldsInterface Fields
+       );
+
         private readonly AppDbContext _context;
 
         public PersonalCMSV2Controller(AppDbContext context)
@@ -274,19 +277,15 @@ namespace personalCMSV2_NET_API.Controllers
         }
         // Update an existing entry
         [HttpPut("entry/{Id}")]
-        public async Task<IActionResult> UpdateEntry([FromBody] ContentEntry entry)
+        public async Task<IActionResult> UpdateEntry(Guid Id, [FromBody] EditEntryFields entry)
         {
-            var existingEntry = await _context.ContentEntry.FindAsync(entry.Id);
+            var existingEntry = await _context.ContentEntry.FindAsync(Id);
             if (existingEntry == null) return NotFound();
-            existingEntry.ModelUuid = entry.ModelUuid;
             existingEntry.Fields = entry.Fields;
             existingEntry.UpdatedAt = DateTime.UtcNow;
-            existingEntry.Name = entry.Name;
-            existingEntry.ModelName = entry.ModelName;
             _context.ContentEntry.Update(existingEntry);
             await _context.SaveChangesAsync();
-            return NoContent();
-
+            return Ok(existingEntry);
         }
     }
 }

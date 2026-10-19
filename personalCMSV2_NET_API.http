@@ -83,3 +83,24 @@ Accept: application/json
   "ModelNameUuid": "localizationToken",
   "EntryName": "Test Entrysss"
 }
+
+### Creates a new entry in the PersonalCMSV2 database
+PUT {{localURL}}/api/PersonalCMSV2/entry/01a15570-b45c-75c9-b031-de80a046660e
+Content-Type: application/json
+Accept: application/json
+{
+  "fields": {
+    "key": {
+      "en-US": "testEntrysss"
+    },
+    "test": {
+      "en-US": "TEST"
+    },
+    "test1": {
+      "en-US": "THIS"
+    },
+    "value": {
+      "en-US": "OUT"
+    }
+  },
+}
