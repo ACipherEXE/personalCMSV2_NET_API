@@ -75,4 +75,11 @@ Accept: application/json
 GET {{localURL}}/api/PersonalCMSV2/entry/13beba48-4da1-4f0a-85da-2416c8fbb94b
 Accept: application/json
 
-
+### Creates a new entry in the PersonalCMSV2 database
+POST {{localURL}}/api/PersonalCMSV2/entry/add
+Content-Type: application/json
+Accept: application/json
+{
+  "ModelNameUuid": "mobiusOnetw0ss",
+  "EntryName": "Test Entry"
+}

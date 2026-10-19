@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace personalCMSV2_NET_API.Controllers
@@ -15,11 +16,14 @@ namespace personalCMSV2_NET_API.Controllers
     public class PersonalCMSV2Controller : ControllerBase
     {
         public record CreateModelRequest([Required] string ModelName);
-        public record CreateEntryRequest([Required] string EntryName, [Required] string ModelNameUuid);
+        public record CreateEntryRequest(
+            [Required] string EntryName, 
+            [Required] string ModelNameUuid
+        );
         public record AddToModelRequest(
             [Required] string FieldName,
             [Required] string FieldType
-            );
+        );
         
         private readonly AppDbContext _context;
 
@@ -44,17 +48,17 @@ namespace personalCMSV2_NET_API.Controllers
                    string.Concat(words.Skip(1).Select(w => ti.ToTitleCase(w.ToLowerInvariant())));
         }
         // Helper method to find a field in a JsonArray by its name
-        public static JsonNode? FindFieldExists(JsonArray fieldList, string fieldName)
+        public static Field? FindFieldExists(List<Field> fieldList, string fieldName)
         {
             return fieldList.FirstOrDefault(f =>
                     string.Equals(
-                    f?["id"]?.GetValue<string>(),
+                    f?.Id,
                     ToCamelCase(fieldName),
                     StringComparison.OrdinalIgnoreCase)
                     );
         }
-
-        public List<ContentModel> FindSpecificModel(string uuid)
+        // Helper method to find a specific model by its UUID
+        public ContentModel? FindSpecificModel(string uuid)
         {
             var model = _context.ContentModel
             .Where(c => c.Uuid == uuid)
@@ -66,10 +70,25 @@ namespace personalCMSV2_NET_API.Controllers
                 CreatedAt = c.CreatedAt,
                 LastUpdated = c.LastUpdated
             })
-            .ToList();
+            .FirstOrDefault();
             return model;
         }
+        private static Dictionary<string, LocalizedValue>? FieldStructureGenerator(List<Field> modelFieldStructure, string contentName)
+        {
+            if (modelFieldStructure == null) return null;
 
+            var fields = new Dictionary<string, LocalizedValue>();
+
+            foreach (var field in modelFieldStructure)
+            {
+                fields[field.Id] = new LocalizedValue
+                {
+                    EnUS = field.Id == "key" ? ToCamelCase(contentName) : ""
+                };
+            }
+
+            return fields;
+        }
 
         // Get all models
         [HttpGet("models")]
@@ -107,7 +126,7 @@ namespace personalCMSV2_NET_API.Controllers
             {
                 Uuid = ToCamelCase(userModelInput.ModelName),
                 EntryName = userModelInput.ModelName,
-                Fields = new JsonArray(),
+                Fields = new List<Field>(),
                 CreatedAt = DateTime.UtcNow,
                 LastUpdated = DateTime.UtcNow
             };
@@ -122,38 +141,39 @@ namespace personalCMSV2_NET_API.Controllers
         public async Task<IActionResult> AddModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
             if (uuid == null) return Conflict($"EntryName is needed.");
-            var entry = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
-            if (entry != null)
+            var model = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
+            if (model != null)
             {
-                JsonArray fieldList = JsonNode.Parse(entry.Fields.ToString())!.AsArray();
+                List<Field> fieldList = model.Fields ?? new List<Field>();
+
                 var exists = FindFieldExists(fieldList, FieldToAdd.FieldName);
                 // Check if the field already exists in the model
                 if (exists != null)
                     return Conflict($"A field with id '{FieldToAdd.FieldName}' already exists in this model.");
-                fieldList.Add(new JsonObject
+                fieldList.Add(new Field
                 {
-                    ["id"]= ToCamelCase(FieldToAdd.FieldName),
-                    ["name"]= FieldToAdd.FieldName,
-                    ["type"]= FieldToAdd.FieldType,
-                    ["omitted"]= false,
-                    ["disabled"]= false,
-                    ["required"]= true,
-                    ["localized"]= false,
-                    ["validations"]= new JsonArray
+                    Id = ToCamelCase(FieldToAdd.FieldName),
+                    Name = FieldToAdd.FieldName,
+                    Type = FieldToAdd.FieldType,
+                    Omitted = false,
+                    Disabled = false,
+                    Required = true,
+                    Localized = false,
+                    Validations = new List<FieldValidation>
                     {
-                        new JsonObject
+                        new FieldValidation
                         {
-                        ["unique"] = true
+                            Unique = true
                         }
                     }
                 });
-                entry.Fields = fieldList;
-                entry.LastUpdated = DateTime.UtcNow;
+                model.Fields = fieldList;
+                model.LastUpdated = DateTime.UtcNow;
                 // Make sure to mark the Fields property as modified
-                _context.ContentModel.Entry(entry).Property(e => e.Fields).IsModified = true;
+                _context.ContentModel.Entry(model).Property(e => e.Fields).IsModified = true;
                 // Then save the changes
                 await _context.SaveChangesAsync();
-                return Ok(entry);
+                return Ok(model);
             }
              return Conflict($"EntryName '{uuid}' does exist.");
         }
@@ -162,22 +182,22 @@ namespace personalCMSV2_NET_API.Controllers
         public async Task<IActionResult> DeleteModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
         {
             if (uuid == null) return Conflict($"EntryName is needed.");
-            var entry = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
-            if (entry != null)
+            var model = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
+            if (model != null)
             {
-                JsonArray fieldList = JsonNode.Parse(entry.Fields.ToString())!.AsArray();
+                List<Field> fieldList = model.Fields ?? new List<Field>();
                 var exists = FindFieldExists(fieldList, FieldToAdd.FieldName);
                 // Check if the field already exists in the model
                 if (exists != null)
                 { 
                    fieldList.Remove(exists);
-                   entry.Fields = fieldList;
-                   entry.LastUpdated = DateTime.UtcNow;
+                    model.Fields = fieldList;
+                    model.LastUpdated = DateTime.UtcNow;
                    // Make sure to mark the Fields property as modified
-                   _context.ContentModel.Entry(entry).Property(e => e.Fields).IsModified = true;
+                   _context.ContentModel.Entry(model).Property(e => e.Fields).IsModified = true;
                    // Then save the changes
                    await _context.SaveChangesAsync();
-                   return Ok(entry); 
+                   return Ok(model); 
                 }
                 
             }
@@ -225,17 +245,39 @@ namespace personalCMSV2_NET_API.Controllers
         [HttpPost("entry/add")]
         public async Task<IActionResult> CreateEntry([FromBody] CreateEntryRequest userEntryInput)
         {
-            var entry = new ContentEntry
-            {
-                ModelUuid = userEntryInput.ModelNameUuid,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Name = userEntryInput.EntryName,
-                ModelName = ""
-            };
-            _context.ContentEntry.Add(entry);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetEntry), new { Id = entry.Id }, entry);
+            // Validate the input
+            if (userEntryInput.ModelNameUuid == null && userEntryInput.EntryName == null) return Conflict($"ModelNameUuid and EntryName are needed.");
+            if (userEntryInput.EntryName == null) return Conflict($"EntryName is needed.");
+            if (userEntryInput.ModelNameUuid == null) return Conflict($"ModelNameUuid is needed.");
+
+            // Check if the model exists and retrieve it
+            var model = FindSpecificModel(userEntryInput.ModelNameUuid);
+            // If the model does not exist, return a conflict response
+            if (model == null) return Conflict($"Model with UUID '{userEntryInput.ModelNameUuid}' was not found.");
+
+            //var entry = new ContentEntry
+            //{
+            //    ModelUuid = userEntryInput.ModelNameUuid,
+            //    CreatedAt = DateTime.UtcNow,
+            //    UpdatedAt = DateTime.UtcNow,
+            //    Name = userEntryInput.EntryName,
+            //    ModelName = "",
+            //    Fields = FieldStructureGenerator(model.Fields, userEntryInput.EntryName)
+            //};
+
+            return Ok(model);
+
+            //var entry = new ContentEntry
+            //{
+            //    ModelUuid = userEntryInput.ModelNameUuid,
+            //    CreatedAt = DateTime.UtcNow,
+            //    UpdatedAt = DateTime.UtcNow,
+            //    Name = userEntryInput.EntryName,
+            //    ModelName = ""
+            //};
+            //_context.ContentEntry.Add(entry);
+            //await _context.SaveChangesAsync();
+            //return CreatedAtAction(nameof(GetEntry), new { Id = entry.Id }, entry);
 
         }
         // Update an existing entry

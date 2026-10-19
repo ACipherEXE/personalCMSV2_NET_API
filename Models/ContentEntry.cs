@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace personalCMSV2_NET_API.Models
 {
@@ -25,4 +26,16 @@ namespace personalCMSV2_NET_API.Models
         public string ModelName { get; set; } = default!;
 
     }
+}
+
+public class LocalizedValue
+{
+    [JsonPropertyName("en_US")]
+    public string EnUS { get; set; } = "";
+}
+
+public class FieldValidation
+{
+    [JsonPropertyName("unique")]
+    public bool? Unique { get; set; }
 }
