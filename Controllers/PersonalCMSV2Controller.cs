@@ -249,7 +249,8 @@ namespace personalCMSV2_NET_API.Controllers
             if (userEntryInput.ModelNameUuid == null && userEntryInput.EntryName == null) return Conflict($"ModelNameUuid and EntryName are needed.");
             if (userEntryInput.EntryName == null) return Conflict($"EntryName is needed.");
             if (userEntryInput.ModelNameUuid == null) return Conflict($"ModelNameUuid is needed.");
-
+            var existing = await _context.ContentEntry.FirstOrDefaultAsync(e => e.Name == userEntryInput.EntryName);
+            if (existing != null) return Conflict($"EntryName '{userEntryInput.EntryName}' already exists.");
             // Check if the model exists and retrieve it
             var model = FindSpecificModel(userEntryInput.ModelNameUuid);
             // If the model does not exist, return a conflict response
