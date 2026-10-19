@@ -14,6 +14,20 @@ namespace personalCMSV2_NET_API.Controllers
     [ApiController]
     public class PersonalCMSV2Controller : ControllerBase
     {
+        public record CreateModelRequest([Required] string ModelName);
+        public record CreateEntryRequest([Required] string EntryName, [Required] string ModelNameUuid);
+        public record AddToModelRequest(
+            [Required] string FieldName,
+            [Required] string FieldType
+            );
+        
+        private readonly AppDbContext _context;
+
+        public PersonalCMSV2Controller(AppDbContext context)
+        {
+            _context = context;
+        }
+
         // Helper method to convert a string to camelCase
         public static string ToCamelCase(string input)
         {
@@ -39,12 +53,23 @@ namespace personalCMSV2_NET_API.Controllers
                     StringComparison.OrdinalIgnoreCase)
                     );
         }
-        private readonly AppDbContext _context;
 
-        public PersonalCMSV2Controller(AppDbContext context)
+        public List<ContentModel> FindSpecificModel(string uuid)
         {
-            _context = context;
+            var model = _context.ContentModel
+            .Where(c => c.Uuid == uuid)
+            .Select(c => new ContentModel
+            {
+                Uuid = c.Uuid,
+                EntryName = c.EntryName,
+                Fields = c.Fields,
+                CreatedAt = c.CreatedAt,
+                LastUpdated = c.LastUpdated
+            })
+            .ToList();
+            return model;
         }
+
 
         // Get all models
         [HttpGet("models")]
@@ -65,47 +90,33 @@ namespace personalCMSV2_NET_API.Controllers
         [HttpGet("model/find/{uuid}")]
         public async Task<IActionResult> GetModel(string uuid)
         {
-            var model = await _context.ContentModel
-            .Where(c => c.Uuid == uuid)
-            .Select(c => new
-            {
-                c.Uuid,
-                c.EntryName,
-                c.Fields,
-                c.CreatedAt,
-                c.LastUpdated
-            })
-            .FirstOrDefaultAsync();
+            var model = FindSpecificModel(uuid);
             if (model == null) return NotFound();
             return Ok(model);
         }
         
-        public record CreateModelRequest([Required] string EntryName);
+        
         // Create a new model
         [HttpPost("model/add")]
-        public async Task<IActionResult> CreateModel([FromBody] CreateModelRequest model)
+        public async Task<IActionResult> CreateModel([FromBody] CreateModelRequest userModelInput)
         {
-            if (model.EntryName == null) return Conflict($"EntryName is needed.");
-            var existing = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == ToCamelCase(model.EntryName));
-            if (existing != null) return Conflict($"EntryName '{model.EntryName}' already exists.");
-            var entry = new ContentModel
+            if (userModelInput.ModelName == null) return Conflict($"ModelName is needed.");
+            var existing = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == ToCamelCase(userModelInput.ModelName));
+            if (existing != null) return Conflict($"ModelName '{userModelInput.ModelName}' already exists.");
+            var model = new ContentModel
             {
-                Uuid = ToCamelCase(model.EntryName),
-                EntryName = model.EntryName,
+                Uuid = ToCamelCase(userModelInput.ModelName),
+                EntryName = userModelInput.ModelName,
                 Fields = new JsonArray(),
                 CreatedAt = DateTime.UtcNow,
                 LastUpdated = DateTime.UtcNow
             };
-            _context.ContentModel.Add(entry);
+            _context.ContentModel.Add(model);
             await _context.SaveChangesAsync();
-            return Ok(entry);
-
+            return Ok(model);
         }
 
-        public record AddToModelRequest(
-            [Required] string FieldName, 
-            [Required] string FieldType
-            );
+        
         // Add a field to a model
         [HttpPost("model/field/{uuid}")]
         public async Task<IActionResult> AddModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
@@ -172,7 +183,7 @@ namespace personalCMSV2_NET_API.Controllers
             }
             return Conflict($"FieldName '{FieldToAdd.FieldName}' was not found.");
         }
-        // Entries
+        // Get all entries
         [HttpGet("entries")]
         public async Task<IActionResult> GetEntries()
         {
@@ -189,7 +200,8 @@ namespace personalCMSV2_NET_API.Controllers
 
             return Ok(result);
         }
-        [HttpGet("entries/{Id}")]
+        // Get a specific entry by Id
+        [HttpGet("entry/{Id}")]
         public async Task<IActionResult> GetEntry(Guid Id)
         {
             var entry = await _context.ContentEntry
@@ -208,18 +220,26 @@ namespace personalCMSV2_NET_API.Controllers
             if (entry == null) return NotFound();
             return Ok(entry);
         }
-        [HttpPost("entrie")]
-        public async Task<IActionResult> CreateEntry([FromBody] ContentEntry entry)
+
+        // Create a new entry
+        [HttpPost("entry/add")]
+        public async Task<IActionResult> CreateEntry([FromBody] CreateEntryRequest userEntryInput)
         {
-            entry.Id = Guid.NewGuid();
-            entry.CreatedAt = DateTime.UtcNow;
-            entry.UpdatedAt = DateTime.UtcNow;
+            var entry = new ContentEntry
+            {
+                ModelUuid = userEntryInput.ModelNameUuid,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                Name = userEntryInput.EntryName,
+                ModelName = ""
+            };
             _context.ContentEntry.Add(entry);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetEntry), new { Id = entry.Id }, entry);
 
         }
-        [HttpPut("entrie")]
+        // Update an existing entry
+        [HttpPut("entry/{Id}")]
         public async Task<IActionResult> UpdateEntry([FromBody] ContentEntry entry)
         {
             var existingEntry = await _context.ContentEntry.FindAsync(entry.Id);
