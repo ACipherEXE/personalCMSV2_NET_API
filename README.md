@@ -22,3 +22,5 @@ How to set up:
 8. Click on the green play button that has text that says https and it should run.
 9. Open in the localhost page on swagger (ex: https://localhost:XXXX/swagger)
 10. Try it out!!!!!
+
+<img width="1559" height="930" alt="image" src="https://github.com/user-attachments/assets/e9026694-e355-4e85-9365-0de38a332dfc" />
