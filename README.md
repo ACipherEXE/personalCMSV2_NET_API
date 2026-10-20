@@ -4,10 +4,6 @@ A API middleware for the personalCMSV2 project. This project will take the weigh
 
 ---
 
-## Text Formatting
-
-Markdown makes it easy to format text. You can write in **bold**, *italic*, or ~~strikethrough~~. Combine them for ***bold italic*** text. Use `inline code` for technical terms.
-
 ## What you need
 Before starting:
 - Visual Studio 
