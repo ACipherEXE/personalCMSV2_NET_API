@@ -107,9 +107,10 @@ namespace personalCMSV2_NET_API.Controllers
             }).ToListAsync();
 
             return Ok(result);
+
         }
         // Get a specific model by UUID
-        [HttpGet("model/find/{uuid}")]
+        [HttpGet("model/{uuid}")]
         public async Task<IActionResult> GetModel(string uuid)
         {
             var model = FindSpecificModel(uuid);
@@ -119,7 +120,7 @@ namespace personalCMSV2_NET_API.Controllers
         
         
         // Create a new model
-        [HttpPost("model/add")]
+        [HttpPost("model/create")]
         public async Task<IActionResult> CreateModel([FromBody] CreateModelRequest userModelInput)
         {
             if (userModelInput.ModelName == null) return Conflict($"ModelName is needed.");
@@ -245,7 +246,7 @@ namespace personalCMSV2_NET_API.Controllers
         }
 
         // Create a new entry
-        [HttpPost("entry/add")]
+        [HttpPost("entry/create")]
         public async Task<IActionResult> CreateEntry([FromBody] CreateEntryRequest userEntryInput)
         {
             // Validate the input
