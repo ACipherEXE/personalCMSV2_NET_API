@@ -23,6 +23,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// Local develoment CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("DevFrontend", policy => policy
+        .WithOrigins("http://localhost:5173")// PersonalCMSV2 port
+        .AllowAnyHeader()
+        .AllowAnyMethod());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -35,6 +44,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseCors("DevFrontend");
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
