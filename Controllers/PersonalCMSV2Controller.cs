@@ -24,6 +24,9 @@ namespace personalCMSV2_NET_API.Controllers
             [Required] string FieldName,
             [Required] string FieldType
         );
+        public record RemoveFromModelRequest(
+            [Required] string FieldName
+        );
         public record EditEntryFields(
            [Required] ContentFieldsInterface Fields
        );
@@ -183,7 +186,7 @@ namespace personalCMSV2_NET_API.Controllers
         }
         // Delete a field from a model
         [HttpDelete("model/field/{uuid}")]
-        public async Task<IActionResult> DeleteModelField(string uuid, [FromBody] AddToModelRequest FieldToAdd)
+        public async Task<IActionResult> DeleteModelField(string uuid, [FromBody] RemoveFromModelRequest FieldToAdd)
         {
             if (uuid == null) return Conflict($"EntryName is needed.");
             var model = await _context.ContentModel.FirstOrDefaultAsync(m => m.Uuid == uuid);
