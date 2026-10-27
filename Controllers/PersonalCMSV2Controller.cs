@@ -208,7 +208,7 @@ namespace personalCMSV2_NET_API.Controllers
                 }
                 
             }
-            return Conflict($"FieldName '{FieldToAdd.FieldName}' was not found.");
+            return Conflict($"EntryName '{uuid}' was not found.");
         }
         // Get all entries
         [HttpGet("entries")]
